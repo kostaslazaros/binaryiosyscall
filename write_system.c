@@ -87,18 +87,32 @@ void display_all(){
 
     close(nfile);
     close(fd1);
-
-
 }
 
 
 void seek_and_retrieve(){
+    char buffercomp[BSIZE];
+    printf("Enter the entry you want to find: ");
+    scanf(" %s", buffercomp);
 
+    char buffer[BSIZE];
+    int anum;
+    int tanum = 0;
+    int fd1 = open(DATAFILE, O_RDONLY); //file descriptor that shows that file opened
+    int nfile = open(POSFILE, O_RDONLY);
+    while(read(nfile, &anum, sizeof(int))){ //read the file that file decriptor shows,read sizeof(int) bytes a time and put them into the adress of anum//
+        lseek(nfile, 0, SEEK_CUR); //leaves us at he position we were the last time we read
+        printf("%i: ", anum); //print the byte numbers
+        tanum += anum;//total bytes read
+        read(fd1, buffer, anum);//read the file that fd1 describes, read anum bytes a time and put them in buffer
+        if(strncmp(buffer, buffercomp, strlen(buffercomp)) == 0){
+            printf("Entry found!!");
+        }
+        lseek(fd1, tanum, SEEK_SET);//starts from the start (SEEK_SET) t and goes to tantum
+    }
 
-}
-
-
-void funcsel(){
+    close(nfile);
+    close(fd1);
 
 }
 
@@ -106,12 +120,14 @@ void funcsel(){
 int main()
 {
     int choice = 0;
-    printf("Selection menu: \n");
-    printf("1 New entry\n");
-    printf("2 Find\n");
-    printf("3 Delete\n");
-    printf("4 Display all\n");
-    printf("5 Exit\n");
+    while(choice != 5){
+    //system("@cls||clear");
+    //printf("Selection menu: \n");
+    printf("(1) New ");
+    printf("(2) Find ");
+    printf("(3) Delete ");
+    printf("(4) Display all ");
+    printf("(5) Exit ");
     printf("Choose: ");
     scanf("%i", &choice);
 
@@ -121,7 +137,7 @@ int main()
         new_entry1();
         break;
     case 2:
-        find();
+        seek_and_retrieve();
         break;
     case 3:
         delete();
@@ -129,12 +145,10 @@ int main()
     case 4:
         display_all();
         break;
-    case 5:
-        exit(1);
     default:
         break;
     }
-
+    }
 /*    int fd1;
     char buf[128];
     fd1 = open(argv[1], O_WRONLY | O_CREAT);
