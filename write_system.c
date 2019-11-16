@@ -36,15 +36,15 @@ int new_entry1(){
     printf("Enter the new entry here: ");
     scanf(" %[^\n]", entry);
     int entry_size = strlen(entry);
-    int fd1 = open(DATAFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    int nfile = open("pos.bin", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    int fd1 = open(DATAFILE, O_WRONLY | O_CREAT, 0644);
+    int nfile = open(POSFILE, O_WRONLY | O_CREAT, 0644);
     if (fd1 == -1) {
         perror(DATAFILE);
         return EXIT_FAILURE;
     }
     /* Enter the data to be written into the file */
-    lseek(fd1, 0, SEEK_SET);
-
+    lseek(fd1, 0, SEEK_END);
+    lseek(nfile, 0, SEEK_END);
     write(fd1, entry, entry_size);
     write(nfile, &entry_size, sizeof(int));
 
@@ -71,6 +71,23 @@ void delete(){
 
 
 void display_all(){
+    char buffer[BSIZE];
+    int anum;
+    int tanum = 0;
+    int fd1 = open(DATAFILE, O_RDONLY); //file descriptor that shows that file opened
+    int nfile = open(POSFILE, O_RDONLY);
+    while(read(nfile, &anum, sizeof(int))){ //read the file that file decriptor shows,read sizeof(int) bytes a time and put them into the adress of anum//
+        lseek(nfile, 0, SEEK_CUR); //leaves us at he position we were the last time we read
+        printf("%i: ", anum); //print the byte numbers
+        tanum += anum;//total bytes read
+        read(fd1, buffer, anum);//read the file that fd1 describes, read anum bytes a time and put them in buffer
+        printf("%s\n", buffer);//print the bytes that are in the buffer
+        lseek(fd1, tanum, SEEK_SET);//starts from the start (SEEK_SET) t and goes to tantum
+    }
+
+    close(nfile);
+    close(fd1);
+
 
 }
 
