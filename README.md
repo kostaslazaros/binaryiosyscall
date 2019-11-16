@@ -1,6 +1,6 @@
 # binaryiosyscall
 
-A project for managing binary files using system calls i
+A project for managing binary files using system calls
 
 Created by _Nefeli Stefanatou_ & _Konstantinos Lazaros_
 

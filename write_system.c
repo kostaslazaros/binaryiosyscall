@@ -17,6 +17,63 @@
 #define BSIZE 128
 
 
+static int cmp_str(const void *lhs, const void *rhs)
+{
+    return strcmp(lhs, rhs);
+}
+
+
+void sort_list(){
+    if(access(DATAFILE, F_OK) == -1){
+        printf("File does not exist. Returning\n");
+        return;
+    }
+    int anum;
+    int counter = 0;
+    int nfile = open(POSFILE, O_RDONLY);
+    while(read(nfile, &anum, sizeof(int))){
+        counter++;
+    }
+    close(nfile);
+    printf("Number of entries: %i\n", counter);
+
+    char bfr[counter][BSIZE];
+    int anum2;
+    int tanum = 0;
+    int fd1 = open(DATAFILE, O_RDONLY);
+    int nfile2 = open(POSFILE, O_RDONLY);
+    int i = 0;
+    while(read(nfile2, &anum2, sizeof(int))){
+        lseek(nfile2, 0, SEEK_CUR);
+        tanum += anum2;
+        memset(bfr[i], '\0', BSIZE*sizeof(char));
+        read(fd1, bfr[i], anum2);
+        lseek(fd1, tanum, SEEK_SET);
+        i++;
+    }
+    close(nfile2);
+    close(fd1);
+    qsort(bfr, counter, sizeof bfr[0], cmp_str);
+    int srs = open(DATAFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    int srn = open(POSFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    for (int j=0; j<counter; j++){
+        long unsigned arlen = strlen(bfr[j]);
+        // printf("%i %s  : %lu\n", j, bfr[j], strlen(bfr[j]));
+        lseek(srs, 0, SEEK_END);
+        lseek(srn, 0, SEEK_END);
+        write(srs, bfr[j], arlen);
+        write(srn, &arlen, sizeof(int));
+    }
+
+    // int todelete = -1;
+    // printf("Select record to delete: ");
+    // scanf(" %i", todelete);
+
+    close(srs);
+    close(srn);
+}
+
+
 int new_entry(){
     char entry[BSIZE];
     printf("Enter the new entry here: ");
@@ -35,12 +92,68 @@ int new_entry(){
     write(nfile, &entry_size, sizeof(int));
     close(fd1);
     close(nfile);
+    sort_list();
     return 0;
 }
 
 
 void delete(){
+   if(access(DATAFILE, F_OK) == -1){
+        printf("File does not exist. Returning\n");
+        return;
+    }
+    int anum;
+    int counter = 0;
+    int nfile = open(POSFILE, O_RDONLY);
+    while(read(nfile, &anum, sizeof(int))){
+        counter++;
+    }
+    close(nfile);
+    printf("Number of entries: %i\n", counter);
 
+    char bfr[counter][BSIZE];
+    int anum2;
+    int tanum = 0;
+    int fd1 = open(DATAFILE, O_RDONLY);
+    int nfile2 = open(POSFILE, O_RDONLY);
+    int i = 0;
+    while(read(nfile2, &anum2, sizeof(int))){
+        lseek(nfile2, 0, SEEK_CUR);
+        tanum += anum2;
+        memset(bfr[i], '\0', BSIZE*sizeof(char));
+        read(fd1, bfr[i], anum2);
+        lseek(fd1, tanum, SEEK_SET);
+        i++;
+    }
+    close(nfile2);
+    close(fd1);
+    for (int j=0; j<counter; j++){
+        printf("%i %s  : %lu\n", j, bfr[j], strlen(bfr[j]));
+    }
+
+    int todelete;
+    printf("Select record to delete: ");
+    scanf(" %i", &todelete);
+
+    int srs = open(DATAFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    int srn = open(POSFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    for (int j=0; j<counter; j++){
+        if (j == todelete)
+            continue;
+        long unsigned arlen = strlen(bfr[j]);
+        // printf("%i %s  : %lu\n", j, bfr[j], strlen(bfr[j]));
+        lseek(srs, 0, SEEK_END);
+        lseek(srn, 0, SEEK_END);
+        write(srs, bfr[j], arlen);
+        write(srn, &arlen, sizeof(int));
+    }
+
+    // int todelete = -1;
+    // printf("Select record to delete: ");
+    // scanf(" %i", todelete);
+
+    close(srs);
+    close(srn);
 
 
 }
