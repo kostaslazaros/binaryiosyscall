@@ -31,7 +31,7 @@ void fcopy()
 }
 
 
-int new_entry1(){
+int new_entry(){
     char entry[BSIZE];
     printf("Enter the new entry here: ");
     scanf(" %[^\n]", entry);
@@ -69,8 +69,9 @@ void display_all(){
     int fd1 = open(DATAFILE, O_RDONLY); //file descriptor that shows that file opened
     int nfile = open(POSFILE, O_RDONLY);
     while(read(nfile, &anum, sizeof(int))){ //read the file that file decriptor shows,read sizeof(int) bytes a time and put them into the adress of anum//
-        lseek(nfile, 0, SEEK_CUR); //leaves us at he position we were the last time we read
+        lseek(nfile, 0, SEEK_CUR); //leaves us at the position we were the last time we read
         printf("%i: ", anum); //print the byte numbers
+        memset(buffer, '\0', BSIZE*sizeof(char));
         tanum += anum;//total bytes read
         read(fd1, buffer, anum);//read the file that fd1 describes, read anum bytes a time and put them in buffer
         printf("%s\n", buffer);//print the bytes that are in the buffer
@@ -126,7 +127,7 @@ int main()
     switch (choice)
     {
     case 1:
-        new_entry1();
+        new_entry();
         break;
     case 2:
         find();
@@ -141,24 +142,5 @@ int main()
         break;
     }
     }
-/*    int fd1;
-    char buf[128];
-    fd1 = open(argv[1], O_WRONLY | O_CREAT);
-    if (fd1 == -1) {
-        perror(argv[1]);
-        return EXIT_FAILURE;
-    }
-
-
-    scanf("%[^\n]s", buf);
-
-    lseek(fd1, 12, SEEK_SET);
-
-    write(fd1, buf, strlen(buf));
-
-    close(fd1);*/
     return 0;
-
 }
-
-
