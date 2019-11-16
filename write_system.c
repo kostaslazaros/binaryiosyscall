@@ -55,14 +55,6 @@ int new_entry1(){
 }
 
 
-void find(){
-    char entry1[BSIZE];
-    printf("Enter the entry you want to find: ");
-    scanf(" %[^\n]s", entry1);
-    printf("%s", entry1);
-}
-
-
 void delete(){
 
 
@@ -90,7 +82,7 @@ void display_all(){
 }
 
 
-void seek_and_retrieve(){
+void find(){
     char buffercomp[BSIZE];
     printf("Enter the entry you want to find: ");
     scanf(" %s", buffercomp);
@@ -137,7 +129,7 @@ int main()
         new_entry1();
         break;
     case 2:
-        seek_and_retrieve();
+        find();
         break;
     case 3:
         delete();
