@@ -19,7 +19,7 @@
 
 int files_exist(){
     if((access(DATAFILE, F_OK) == -1) && (access(POSFILE, F_OK) == -1) ){
-        printf("File does not exist. Returning\n");
+        printf("\nFiles do not exist. Insert a new record first ;-D\n");
         return 0;
     }
     return 1;
@@ -108,6 +108,7 @@ int insert(){
     close(fd1);
     close(nfile);
     sort_list();
+    printf("\nRecord %s inserted successfully :-)\n", entry);
     return 0;
 }
 
@@ -150,7 +151,7 @@ void delete(){
     }
     close(srs);
     close(srn);
-    printf("\nRecord No: %d deleted.\n", todelete);
+    printf("\nRecord No: %d deleted :-(\n", todelete);
 }
 
 
@@ -185,7 +186,7 @@ void edit(){
     scanf(" %[^\n]", bfr[toedit-1]);
     qsort(bfr, counter, sizeof bfr[0], cmp_str);
     save2file(bfr, counter);
-    printf("\nRecord No: %d updated.\n", toedit);
+    printf("\nRecord No: %d edited :-D\n", toedit);
 }
 
 
@@ -232,7 +233,7 @@ void find(){
         memset(buffer, '\0', BSIZE*sizeof(char));
         read(fd1, buffer, anum);//read the file that fd1 describes, read anum bytes a time and put them in buffer
         if(strncmp(buffer, buffercomp, strlen(buffercomp)) == 0){
-            printf("Found entry: %s\n", buffer);
+            printf("\nFound entry: %s :-D\n", buffer);
             found = 1;
             break;
         }
@@ -241,7 +242,7 @@ void find(){
     close(nfile);
     close(fd1);
     if(!found){
-        printf("Entry not found.\n");
+        printf("\nEntry not found :-(\n");
     }
 }
 
