@@ -17,11 +17,17 @@
 #define BSIZE 128
 
 
-void load_data(char arr[][BSIZE]){
-    if(access(DATAFILE, F_OK) == -1){
+int files_exist(){
+    if((access(DATAFILE, F_OK) == -1) && (access(POSFILE, F_OK) == -1) ){
         printf("File does not exist. Returning\n");
-        return;
+        return 0;
     }
+    return 1;
+}
+
+
+void load_data(char arr[][BSIZE]){
+    if(! files_exist()) return;
     int anum2;
     int tanum = 0;
     int fd1 = open(DATAFILE, O_RDONLY);
@@ -56,10 +62,7 @@ void save2file(char arr[][BSIZE], int arrsize){
 
 
 int get_number_of_records(){
-    if(access(POSFILE, F_OK) == -1){
-        printf("File does not exist. Returning\n");
-        return 0;
-    }
+    if(! files_exist()) return 0;
     int anum;
     int counter = 0;
     int nfile = open(POSFILE, O_RDONLY);
@@ -77,10 +80,7 @@ static int cmp_str(const void *lhs, const void *rhs)
 
 
 void sort_list(){
-    if(access(DATAFILE, F_OK) == -1){
-        printf("File does not exist. Returning\n");
-        return;
-    }
+    if(! files_exist()) return;
     int counter = get_number_of_records();
     char bfr[counter][BSIZE];
     load_data(bfr);
@@ -113,10 +113,7 @@ int insert(){
 
 
 void delete(){
-   if(access(DATAFILE, F_OK) == -1){
-        printf("File does not exist. Returning\n");
-        return;
-    }
+    if(! files_exist()) return;
     int counter = get_number_of_records();
     char bfr[counter][BSIZE];
     load_data(bfr);
@@ -135,13 +132,10 @@ void delete(){
         printf("Number (%d) exceeds max record number (%d)\n", todelete, counter);
         return;
     }
-
     if(todelete == 0){
         printf("Delete cancelled\n");
         return;
     }
-
-
     int srs = open(DATAFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     int srn = open(POSFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     for (int j=0; j<counter; j++){
@@ -161,10 +155,7 @@ void delete(){
 
 
 void edit(){
-   if(access(DATAFILE, F_OK) == -1){
-        printf("File does not exist. Returning\n");
-        return;
-    }
+    if(! files_exist()) return;
     int counter = get_number_of_records();
     char bfr[counter][BSIZE];
     load_data(bfr);
@@ -192,27 +183,14 @@ void edit(){
     printf("New Value     : ");
     memset(bfr[toedit-1], '\0', BSIZE*sizeof(char));
     scanf(" %[^\n]", bfr[toedit-1]);
-    int srs = open(DATAFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    int srn = open(POSFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    for (int j=0; j<counter; j++){
-        long unsigned arlen = strlen(bfr[j]);
-        // printf("%i %s  : %lu\n", j, bfr[j], strlen(bfr[j]));
-        lseek(srs, 0, SEEK_END);
-        lseek(srn, 0, SEEK_END);
-        write(srs, bfr[j], arlen);
-        write(srn, &arlen, sizeof(int));
-    }
-    close(srs);
-    close(srn);
+    qsort(bfr, counter, sizeof bfr[0], cmp_str);
+    save2file(bfr, counter);
     printf("\nRecord No: %d updated.\n", toedit);
-    sort_list();
 }
 
+
 void display_all(){
-    if(access(DATAFILE, F_OK) == -1){
-        printf("File does not exist. Returning\n");
-        return;
-    }
+    if(! files_exist()) return;
     char buffer[BSIZE];
     int anum;
     int tanum = 0;
@@ -237,10 +215,7 @@ void display_all(){
 
 
 void find(){
-    if(access(DATAFILE, F_OK) == -1){
-        printf("File does not exist. Returning\n");
-        return;
-    }
+    if(! files_exist()) return;
     char buffercomp[BSIZE];
     printf("Enter lookup text: ");
     scanf(" %s", buffercomp);
@@ -272,7 +247,6 @@ void find(){
 
 
 void about(){
-
     printf("\n");
     printf("******************************************************\n");
     printf("*                                                    *\n");
