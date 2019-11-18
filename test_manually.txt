@@ -1,0 +1,10 @@
+1.  Select [1] and give: Αναστάσιος Ζαχαρίου
+2.  Select [1] and give: Ιωάννης Αναστασιάδης
+3.  Select [1] and give: Αντώνιος Ελευθερίας
+4.  Select [5] and should print : Ιωάννης Αναστασιάδης Αντώνιος Ελευθερίας Αναστάσιος Ζαχαρίου
+5.  Select [2] then [2] and change Αντώνιος Ελευθερίας to Αντώνιος Ελευθερίου
+6.  Select [3] then [2] should delete Αντώνιος Ελευθερίου
+7.  Select [5] and should print : Ιωάννης Αναστασιάδης Αναστάσιος Ζαχαρίου
+8.  Select [4] and give : Αναστασιάδης should print : Ιωάννης Αναστασιάδης
+9.  Select [6] and should print exiting message and terminate program
+

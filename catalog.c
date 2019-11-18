@@ -18,48 +18,53 @@
 #define NAMES_FIRST 1  // Εάν στο αρχείο είναι πρώτα τα ονόματα και μετά τα επώνυμα
 
 
+void printw(char *val){ //
+   write(1, val, strlen(val));
+}
+
+
 int files_exist(){
     if((access(DATAFILE, F_OK) == -1) && (access(POSFILE, F_OK) == -1) ){
-        printf("\nFiles do not exist. Insert a new record first ;-D\n");
+        printw("\nFiles do not exist. Insert a new record first ;-D\n");
         return 0;
     }
     return 1;
 }
 
 
-void flip(char *str){
+void flip(char *str){//flips name and surname for one entry only
     char sep = ' ';
     unsigned int stop;
-    char fs[2][BSIZE];
-    memset(fs[0], '\0', BSIZE*sizeof(char));
-    memset(fs[1], '\0', BSIZE*sizeof(char));
+    char fs[2][BSIZE];//makes an array to hold names and surnames
+    memset(fs[0], '\0', BSIZE*sizeof(char));//clears the name buffer
+    memset(fs[1], '\0', BSIZE*sizeof(char));//clears the surname buffer
     int selector = 0;
     int first = 0;
     for (stop=0; str[stop]; stop++){//till str has characters
-        if (str[stop] == sep && selector == 0){
+        if (str[stop] == sep && selector == 0){//if we meet space and selector is 0- do exmample to undestnd better
             selector = 1;
             first = stop + 1;
             continue;
         }
-        fs[selector][stop-first] = str[stop];
+        fs[selector][stop-first] = str[stop];//puts name and surname into fs[1] and fs[0] so seperates them
     }
 
     int pos = 0;
     for (int i=0; fs[1][i]; i++){
-        str[i] = fs[1][i];
+        str[i] = fs[1][i]; //puts surnames to str
         pos++;
     }
     if (pos > 0){
-        str[pos] = ' ';
+        str[pos] = ' ';//go to str and put space where you were
         pos++;
     }
-    for (int j=0; fs[0][j]; j++){
+    for (int j=0; fs[0][j]; j++){//from where we were after we put surname and space we put name
         str[pos+j] = fs[0][j];
     }
 }
 
 void flip_array(char arr[][128], int arrsize){//flips many times for all entries
-    for (int i=0; i<arrsize;i++){
+    for (int i=0; i<arrsize;i++){//takes all entries and flips them
         flip(arr[i]);
     }
 }
@@ -113,7 +118,7 @@ int get_number_of_records(){
     return counter;
 }
 
-static int cmp_str(const void *lhs, const void *rhs){
+static int cmp_str(const void *lhs, const void *rhs){//used only by qshort-callback function
     return strcmp(lhs, rhs);
 }
 
@@ -136,7 +141,7 @@ void sort_list(){
 
 int insert(){
     char entry[BSIZE];
-    printf("Enter the new entry here: ");
+    printw("Enter the new entry here: ");
     scanf(" %[^\n]", entry);
     int entry_size = strlen(entry);
     int fd1 = open(DATAFILE, O_WRONLY | O_CREAT, 0644);
@@ -163,15 +168,15 @@ void delete(){
     int counter = get_number_of_records();
     char bfr[counter][BSIZE];
     load_data(bfr);
-    printf("\nList of Records\n");
-    printf("---------------\n");
+    printw("\nList of Records\n");
+    printw("---------------\n");
     for (int j=0; j<counter; j++){
         printf("%i.%s \n", j+1, bfr[j]);
     }
     int todelete;
-    printf("\nSelect [record number] to delete or [0] to cancel: ");
+    printw("\nSelect [record number] to delete or [0] to cancel: ");
     if (1 != scanf(" %d", &todelete)){
-        printf("Invalid record number\n");
+        printw("Invalid record number\n");
         return;
     };
     if(todelete > counter){
@@ -179,7 +184,7 @@ void delete(){
         return;
     }
     if(todelete == 0){
-        printf("Delete cancelled\n");
+        printw("Delete cancelled\n");
         return;
     }
     int srs = open(DATAFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
@@ -205,15 +210,15 @@ void edit(){
     int counter = get_number_of_records();
     char bfr[counter][BSIZE];
     load_data(bfr);
-    printf("\nList of Records\n");
-    printf("---------------\n");
+    printw("\nList of Records\n");
+    printw("---------------\n");
     for (int j=0; j<counter; j++){
         printf("%i.%s \n", j+1, bfr[j]);
     }
     int toedit;
-    printf("\nSelect [record number] to edit or [0] to cancel: ");
+    printw("\nSelect [record number] to edit or [0] to cancel: ");
     if (1 != scanf(" %d", &toedit)){
-        printf("Invalid record number\n");
+        printw("Invalid record number\n");
         return;
     };
     if(toedit > counter){
@@ -222,11 +227,11 @@ void edit(){
     }
 
     if(toedit == 0){
-        printf("Edit cancelled\n");
+        printw("Edit cancelled\n");
         return;
     }
     printf("Record to Edit: %s\n", bfr[toedit-1]);
-    printf("New Value     : ");
+    printw("New Value     : ");
     memset(bfr[toedit-1], '\0', BSIZE*sizeof(char));
     scanf(" %[^\n]", bfr[toedit-1]);
     if(NAMES_FIRST)
@@ -247,8 +252,8 @@ void display_all(){
     int fd1 = open(DATAFILE, O_RDONLY); //file descriptor that shows that file opened
     int nfile = open(POSFILE, O_RDONLY);
     int record_no = 1;
-    printf("\nList Of Records\n");
-    printf("---------------\n");
+    printw("\nList Of Records\n");
+    printw("---------------\n");
     while(read(nfile, &anum, sizeof(int))){ //read the file that file decriptor shows,read sizeof(int) bytes a time and put them into the adress of anum//
         lseek(nfile, 0, SEEK_CUR); //leaves us at the position we were the last time we read
         printf("%i.", record_no++);
@@ -260,14 +265,14 @@ void display_all(){
     }
     close(nfile);
     close(fd1);
-    printf("\n");
+    printw("\n");
 }
 
 
 void search(){
     if(! files_exist()) return;
     char buffercomp[BSIZE];
-    printf("Enter lookup text: ");
+    printw("Enter lookup text: ");
     scanf(" %s", buffercomp);
     char buffer[BSIZE];
     int anum;
@@ -295,29 +300,29 @@ void search(){
     close(nfile);
     close(fd1);
     if(!found){
-        printf("\nEntry not found :-(\n");
+        printw("\nEntry not found :-(\n");
     }
 }
 
 
 void about(){
-    printf("\n");
-    printf("******************************************************\n");
-    printf("*                                                    *\n");
-    printf("*                    CATALOG                         *\n");
-    printf("*                                                    *\n");
-    printf("*        A program to manage binary files            *\n");
-    printf("*               Using system calls                   *\n");
-    printf("*                                                    *\n");
-    printf("*                    CREATORS                        *\n");
-    printf("*     Nefeli Stefanatou, Konstantinos Lazaros        *\n");
-    printf("*                                                    *\n");
-    printf("*             UNIVERSITY OF THESSALY                 *\n");
-    printf("*                                                    *\n");
-    printf("*          Department of computer science            *\n");
-    printf("*            and biomedical informatics              *\n");
-    printf("*                                                    *\n");
-    printf("******************************************************\n");
+    printw("\n");
+    printw("******************************************************\n");
+    printw("*                                                    *\n");
+    printw("*                    CATALOG                         *\n");
+    printw("*                                                    *\n");
+    printw("*        A program to manage binary files            *\n");
+    printw("*               Using system calls                   *\n");
+    printw("*                                                    *\n");
+    printw("*                    CREATORS                        *\n");
+    printw("*     Nefeli Stefanatou, Konstantinos Lazaros        *\n");
+    printw("*                                                    *\n");
+    printw("*             UNIVERSITY OF THESSALY                 *\n");
+    printw("*                                                    *\n");
+    printw("*          Department of computer science            *\n");
+    printw("*            and biomedical informatics              *\n");
+    printw("*                                                    *\n");
+    printw("******************************************************\n");
 }
 
 
@@ -331,20 +336,20 @@ int main(){
         //system("@cls||clear");
         //printf("Selection menu: \n");
         choice = 0;
-        printf("[1]Insert ");
-        printf("[2]Edit ");
-        printf("[3]Delete ");
-        printf("[4]Search ");
-        printf("[5]Display all ");
-        printf("[6]Exit ");
-        printf(" ~> ");
+        printw("[1]Insert ");
+        printw("[2]Edit ");
+        printw("[3]Delete ");
+        printw("[4]Search ");
+        printw("[5]Display all ");
+        printw("[6]Exit ");
+        printw(" ~> ");
         if (1 != scanf(" %1d", &choice)){
-            printf("Invalid choice. Exiting\n");
+            printw("Invalid choice. Exiting\n");
             break;
         }
         switch (choice){
             case 0:
-                printf("Invalid choice");
+                printw("Invalid choice");
                 break;
             case 1:
                 insert();
@@ -365,10 +370,10 @@ int main(){
                 break;
             default:
                 choice = 6;
-                printf("Invalid choice. Exiting\n");
+                printw("Invalid choice. Exiting\n");
                 break;
         }
     }
-    printf("\nThank you for using catalog ;-)\n");
+    printw("\nThank you for using catalog ;-)\n");
     return 0;
 }
