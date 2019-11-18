@@ -15,6 +15,7 @@
 #define DATAFILE "data.bin"
 #define POSFILE "pos.bin"
 #define BSIZE 128
+#define NAMES_FIRST 1  // Εάν στο αρχείο είναι πρώτα τα ονόματα και μετά τα επώνυμα
 
 
 int files_exist(){
@@ -23,6 +24,44 @@ int files_exist(){
         return 0;
     }
     return 1;
+}
+
+
+void flip(char *str){
+    char sep = ' ';
+    unsigned int stop;
+    char fs[2][BSIZE];
+    memset(fs[0], '\0', BSIZE*sizeof(char));
+    memset(fs[1], '\0', BSIZE*sizeof(char));
+    int selector = 0;
+    int first = 0;
+    for (stop=0; str[stop]; stop++){//till str has characters
+        if (str[stop] == sep && selector == 0){
+            selector = 1;
+            first = stop + 1;
+            continue;
+        }
+        fs[selector][stop-first] = str[stop];
+    }
+
+    int pos = 0;
+    for (int i=0; fs[1][i]; i++){
+        str[i] = fs[1][i];
+        pos++;
+    }
+    if (pos > 0){
+        str[pos] = ' ';
+        pos++;
+    }
+    for (int j=0; fs[0][j]; j++){
+        str[pos+j] = fs[0][j];
+    }
+}
+
+void flip_array(char arr[][128], int arrsize){//flips many times for all entries
+    for (int i=0; i<arrsize;i++){
+        flip(arr[i]);
+    }
 }
 
 
@@ -44,6 +83,7 @@ void load_data(char arr[][BSIZE]){
     close(nfile2);
     close(fd1);
 }
+
 
 void save2file(char arr[][BSIZE], int arrsize){
     int srs = open(DATAFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
@@ -73,8 +113,7 @@ int get_number_of_records(){
     return counter;
 }
 
-static int cmp_str(const void *lhs, const void *rhs)
-{
+static int cmp_str(const void *lhs, const void *rhs){
     return strcmp(lhs, rhs);
 }
 
@@ -84,7 +123,13 @@ void sort_list(){
     int counter = get_number_of_records();
     char bfr[counter][BSIZE];
     load_data(bfr);
+    // put surnames first in order to sort list by surname
+    if(NAMES_FIRST)
+        flip_array(bfr, counter);
     qsort(bfr, counter, sizeof bfr[0], cmp_str);
+    // revert list to normal
+    if(NAMES_FIRST)
+        flip_array(bfr, counter);
     save2file(bfr, counter);
 }
 
@@ -184,7 +229,11 @@ void edit(){
     printf("New Value     : ");
     memset(bfr[toedit-1], '\0', BSIZE*sizeof(char));
     scanf(" %[^\n]", bfr[toedit-1]);
+    if(NAMES_FIRST)
+        flip_array(bfr, counter);
     qsort(bfr, counter, sizeof bfr[0], cmp_str);
+    if(NAMES_FIRST)
+        flip_array(bfr, counter);
     save2file(bfr, counter);
     printf("\nRecord No: %d edited :-D\n", toedit);
 }
@@ -205,9 +254,9 @@ void display_all(){
         printf("%i.", record_no++);
         memset(buffer, '\0', BSIZE*sizeof(char));
         tanum += anum;//total bytes read
-        read(fd1, buffer, anum);//read the file that fd1 describes, read anum bytes a time and put them in buffer
-        printf("%s\n", buffer);//print the bytes that are in the buffer
-        lseek(fd1, tanum, SEEK_SET);//starts from the start (SEEK_SET) t and goes to tantum
+        read(fd1, buffer, anum); //read the file that fd1 describes, read anum bytes a time and put them in buffer
+        printf("%s\n", buffer); //print the bytes that are in the buffer
+        lseek(fd1, tanum, SEEK_SET); //starts from the start (SEEK_SET) t and goes to tanum
     }
     close(nfile);
     close(fd1);
@@ -215,7 +264,7 @@ void display_all(){
 }
 
 
-void find(){
+void search(){
     if(! files_exist()) return;
     char buffercomp[BSIZE];
     printf("Enter lookup text: ");
@@ -232,7 +281,11 @@ void find(){
         tanum += anum;//total bytes read
         memset(buffer, '\0', BSIZE*sizeof(char));
         read(fd1, buffer, anum);//read the file that fd1 describes, read anum bytes a time and put them in buffer
+        if(NAMES_FIRST)
+            flip(buffer); // Put Surname first
         if(strncmp(buffer, buffercomp, strlen(buffercomp)) == 0){
+            if(NAMES_FIRST)
+                flip(buffer); // Put name first again
             printf("\nFound entry: %s :-D\n", buffer);
             found = 1;
             break;
@@ -270,6 +323,9 @@ void about(){
 
 int main(){
     about();
+    // Αντί της printf μπορεί κανείς να χρησιμοποιήσει το παρακάτω:
+    // char buff[] = "Hello People\n";
+    // write(1, buff, strlen(buff));
     int choice = 0;
     while(choice != 6){
         //system("@cls||clear");
@@ -278,7 +334,7 @@ int main(){
         printf("[1]Insert ");
         printf("[2]Edit ");
         printf("[3]Delete ");
-        printf("[4]Find ");
+        printf("[4]Search ");
         printf("[5]Display all ");
         printf("[6]Exit ");
         printf(" ~> ");
@@ -300,10 +356,12 @@ int main(){
                 delete();
                 break;
             case 4:
-                find();
+                search();
                 break;
             case 5:
                 display_all();
+                break;
+            case 6:
                 break;
             default:
                 choice = 6;
