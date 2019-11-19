@@ -109,7 +109,7 @@ void save2file(char arr[][BSIZE], int arrsize){
 int get_number_of_records(){
     if(! files_exist()) return 0;
     int anum;
-    int counter = 0;
+    unsigned int counter = 0;
     int nfile = open(POSFILE, O_RDONLY);
     while(read(nfile, &anum, sizeof(int))){
         counter++;
@@ -117,6 +117,7 @@ int get_number_of_records(){
     close(nfile);
     return counter;
 }
+
 
 static int cmp_str(const void *lhs, const void *rhs){//used only by qshort-callback function
     return strcmp(lhs, rhs);
@@ -165,7 +166,7 @@ int insert(){
 
 void delete(){
     if(! files_exist()) return;
-    int counter = get_number_of_records();
+    unsigned int counter = get_number_of_records();
     char bfr[counter][BSIZE];
     load_data(bfr);
     printw("\nList of Records\n");
@@ -183,17 +184,16 @@ void delete(){
         printf("Number (%d) exceeds max record number (%d)\n", todelete, counter);
         return;
     }
-    if(todelete == 0){
+    if(todelete <= 0){
         printw("Delete cancelled\n");
         return;
     }
     int srs = open(DATAFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     int srn = open(POSFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    for (int j=0; j<counter; j++){
+    for (long unsigned int j=0; j<counter; j++){
         if (j == (todelete - 1))
             continue;
         long unsigned arlen = strlen(bfr[j]);
-        // printf("%i %s  : %lu\n", j, bfr[j], strlen(bfr[j]));
         lseek(srs, 0, SEEK_END);
         lseek(srn, 0, SEEK_END);
         write(srs, bfr[j], arlen);
@@ -226,7 +226,7 @@ void edit(){
         return;
     }
 
-    if(toedit == 0){
+    if(toedit <= 0){
         printw("Edit cancelled\n");
         return;
     }
@@ -251,12 +251,12 @@ void display_all(){
     int tanum = 0;
     int fd1 = open(DATAFILE, O_RDONLY); //file descriptor that shows that file opened
     int nfile = open(POSFILE, O_RDONLY);
-    int record_no = 1;
+    long unsigned int record_no = 1;
     printw("\nList Of Records\n");
     printw("---------------\n");
     while(read(nfile, &anum, sizeof(int))){ //read the file that file decriptor shows,read sizeof(int) bytes a time and put them into the adress of anum//
         lseek(nfile, 0, SEEK_CUR); //leaves us at the position we were the last time we read
-        printf("%i.", record_no++);
+        printf("%d.", record_no++);
         memset(buffer, '\0', BSIZE*sizeof(char));
         tanum += anum;//total bytes read
         read(fd1, buffer, anum); //read the file that fd1 describes, read anum bytes a time and put them in buffer
