@@ -15,103 +15,104 @@
 #define DATAFILE "data.bin"
 #define POSFILE "pos.bin"
 #define BSIZE 128
-#define NAMES_FIRST 1  // Εάν στο αρχείο είναι πρώτα τα ονόματα και μετά τα επώνυμα
+#define NAMES_FIRST 1  // If names are before surnames
 
 
-void printw(char *val){ //
-   write(1, val, strlen(val));
+void printw(char *val){ //implements printf i. i put as input a string
+   write(1, val, strlen(val)); // In write for first place we can either use a file descriptor obtained from the open system call, or you can use 0, 1, or 2, to refer to standard input, standard output, or standard error, respectively.we print val that has length strlen(val)
 }
+
 
 
 int files_exist(){
-    if((access(DATAFILE, F_OK) == -1) && (access(POSFILE, F_OK) == -1) ){
+    if((access(DATAFILE, F_OK) == -1) && (access(POSFILE, F_OK) == -1) ){ // checks if both files exist. Access() checks whether the calling process can access the file pathname. F_OK tests whether the file exists. returns -1 if flie doesnt exist
         printw("\nFiles do not exist. Insert a new record first ;-D\n");
-        return 0;
+        return 0; // returns zero if one or both files dont exist
     }
-    return 1;
+    return 1; // returns one if both files exist
 }
 
 
-void flip(char *str){//flips name and surname for one entry only
+
+void flip(char *str){ // flips name and surname for one entry only
     char sep = ' ';
     unsigned int stop;
-    char fs[2][BSIZE];//makes an array to hold names and surnames
-    memset(fs[0], '\0', BSIZE*sizeof(char));//clears the name buffer
-    memset(fs[1], '\0', BSIZE*sizeof(char));//clears the surname buffer
+    char fs[2][BSIZE]; // makes an array to hold names and surnames
+    memset(fs[0], '\0', BSIZE*sizeof(char)); // clears the name buffer
+    memset(fs[1], '\0', BSIZE*sizeof(char)); // clears the surname buffer
     int selector = 0;
     int first = 0;
-    for (stop=0; str[stop]; stop++){//till str has characters
-        if (str[stop] == sep && selector == 0){//if we meet space and selector is 0- do exmample to undestnd better
+    for (stop=0; str[stop]; stop++){ // till str has characters
+        if (str[stop] == sep && selector == 0){ // if we meet space and selector is 0- do exmample to undestnd better
             selector = 1;
             first = stop + 1;
             continue;
         }
-        fs[selector][stop-first] = str[stop];//puts name and surname into fs[1] and fs[0] so seperates them
+        fs[selector][stop-first] = str[stop]; // puts name and surname into fs[1] and fs[0] so seperates them
     }
 
     int pos = 0;
     for (int i=0; fs[1][i]; i++){
-        str[i] = fs[1][i]; //puts surnames to str
-        pos++;
+        str[i] = fs[1][i]; // puts surnames to str
+        pos++; // increment pos by 1
     }
     if (pos > 0){
-        str[pos] = ' ';//go to str and put space where you were
+        str[pos] = ' '; // go to str and put space where you were
         pos++;
     }
-    for (int j=0; fs[0][j]; j++){//from where we were after we put surname and space we put name
+    for (int j=0; fs[0][j]; j++){ // from where we were after we put surname and space we put name
         str[pos+j] = fs[0][j];
     }
 }
 
-void flip_array(char arr[][128], int arrsize){//flips many times for all entries
-    for (int i=0; i<arrsize;i++){//takes all entries and flips them
+void flip_array(char arr[][128], int arrsize){ // flips many times for all entries
+    for (int i=0; i<arrsize;i++){ // takes all entries and flips them
         flip(arr[i]);
     }
 }
 
 
-void load_data(char arr[][BSIZE]){
-    if(! files_exist()) return;
+void load_data(char arr[][BSIZE]){ // loads data in memory
+    if(! files_exist()) return; // checks if files exist
     int anum2;
     int tanum = 0;
-    int fd1 = open(DATAFILE, O_RDONLY);
-    int nfile2 = open(POSFILE, O_RDONLY);
+    int fd1 = open(DATAFILE, O_RDONLY); // open the data.bin file in order to be read
+    int nfile2 = open(POSFILE, O_RDONLY); // open the pos.bin file in order to be read
     int i = 0;
-    while(read(nfile2, &anum2, sizeof(int))){
-        lseek(nfile2, 0, SEEK_CUR);
-        tanum += anum2;
-        memset(arr[i], '\0', BSIZE*sizeof(char));
-        read(fd1, arr[i], anum2);
-        lseek(fd1, tanum, SEEK_SET);
+    while(read(nfile2, &anum2, sizeof(int))){ // read size of int bytes from nfile2 and put them in anum2
+        lseek(nfile2, 0, SEEK_CUR); // makes sure we continue reading the file's bytes from where we where last time
+        tanum += anum2; // total number of bytes read
+        memset(arr[i], '\0', BSIZE*sizeof(char)); // clear buffer
+        read(fd1, arr[i], anum2);  // read anum2 bytes from fd1 and put them in arr[i]
+        lseek(fd1, tanum, SEEK_SET); // moves place tanumb bytes
         i++;
     }
-    close(nfile2);
-    close(fd1);
+    close(nfile2); // close file
+    close(fd1); // close file
 }
 
 
-void save2file(char arr[][BSIZE], int arrsize){
-    int srs = open(DATAFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    int srn = open(POSFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+void save2file(char arr[][BSIZE], int arrsize){ // saves entries to files
+    int srs = open(DATAFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644); // open datafile. o_trunk=if there is anything in there clear them
+    int srn = open(POSFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644); // open posfile
     for (int j=0; j<arrsize; j++){
-        long unsigned arlen = strlen(arr[j]);
-        // printf("%i %s  : %lu\n", j, bfr[j], strlen(bfr[j]));
-        lseek(srs, 0, SEEK_END);
-        lseek(srn, 0, SEEK_END);
-        write(srs, arr[j], arlen);
-        write(srn, &arlen, sizeof(int));
+        long unsigned arlen = strlen(arr[j]); // takes the length of entry
+        lseek(srs, 0, SEEK_END); // goes to the end of file
+        lseek(srn, 0, SEEK_END); // goes to the end of file
+        write(srs, arr[j], arlen); // write in DATAFILE
+        write(srn, &arlen, sizeof(int)); // write the size of name-surname you put
     }
-    close(srs);
-    close(srn);
+    close(srs); // close file data.bin
+    close(srn); // close file pos.bin
 }
 
 
-int get_number_of_records(){
-    if(! files_exist()) return 0;
+int get_number_of_records(){ // gets and returns number of records
+    if(! files_exist()) return 0; // checks if files exist
     int anum;
     unsigned int counter = 0;
-    int nfile = open(POSFILE, O_RDONLY);
-    while(read(nfile, &anum, sizeof(int))){
+    int nfile = open(POSFILE, O_RDONLY);  // opens pos.bin file
+    while(read(nfile, &anum, sizeof(int))){  // read sizeof(int) bytes from nfile and put them in anum. we are just using it there to count
         counter++;
     }
     close(nfile);
@@ -119,46 +120,46 @@ int get_number_of_records(){
 }
 
 
-static int cmp_str(const void *lhs, const void *rhs){//used only by qshort-callback function
-    return strcmp(lhs, rhs);
+static int cmp_str(const void *lhs, const void *rhs){ // used only by qshort-callback function
+    return strcmp(lhs, rhs); // compare two strings
 }
 
 
 void sort_list(){
-    if(! files_exist()) return;
-    int counter = get_number_of_records();
+    if(! files_exist()) return; // checks if files exist
+    int counter = get_number_of_records(); // gets the number of records
     char bfr[counter][BSIZE];
-    load_data(bfr);
+    load_data(bfr); // puts data in bfr names are first here
     // put surnames first in order to sort list by surname
     if(NAMES_FIRST)
-        flip_array(bfr, counter);
-    qsort(bfr, counter, sizeof bfr[0], cmp_str);
+        flip_array(bfr, counter); // flips entries and puts surnames first
+    qsort(bfr, counter, sizeof bfr[0], cmp_str); // sorts entries by surnames
     // revert list to normal
     if(NAMES_FIRST)
-        flip_array(bfr, counter);
-    save2file(bfr, counter);
+        flip_array(bfr, counter); // flips array and does it name-surname again
+    save2file(bfr, counter); // saves all entries to bfr
 }
 
 
-int insert(){
+int insert(){ // inserts entry
     char entry[BSIZE];
     printw("Enter the new entry here: ");
-    scanf(" %[^\n]", entry);
-    int entry_size = strlen(entry);
-    int fd1 = open(DATAFILE, O_WRONLY | O_CREAT, 0644);
-    int nfile = open(POSFILE, O_WRONLY | O_CREAT, 0644);
-    if (fd1 == -1){
-        perror(DATAFILE);
+    scanf(" %[^\n]", entry); // we put %[^\n] to take gap too
+    int entry_size = strlen(entry); // gets the size of the entry we put
+    int fd1 = open(DATAFILE, O_WRONLY | O_CREAT, 0644); // open the file DATAFILE if not existing create it
+    int nfile = open(POSFILE, O_WRONLY | O_CREAT, 0644); // open the file POSFILE if not existing create it
+    if (fd1 == -1){ // if it doesent open error
+        perror(DATAFILE); // prints a system error message
         return EXIT_FAILURE;
     }
     /* Enter the data to be written into the file */
     lseek(fd1, 0, SEEK_END);
     lseek(nfile, 0, SEEK_END);
-    write(fd1, entry, entry_size);
-    write(nfile, &entry_size, sizeof(int));
+    write(fd1, entry, entry_size); // read entry_size of bytes from DATAFILE and put them in entry
+    write(nfile, &entry_size, sizeof(int)); // read sizeof(int) from POSFILE and put them in entry size
     close(fd1);
     close(nfile);
-    sort_list();
+    sort_list(); // sort
     printf("\nRecord %s inserted successfully :-)\n", entry);
     return 0;
 }
@@ -166,21 +167,21 @@ int insert(){
 
 void delete(){
     if(! files_exist()) return;
-    unsigned int counter = get_number_of_records();
+    int counter = get_number_of_records();
     char bfr[counter][BSIZE];
-    load_data(bfr);
+    load_data(bfr); // loads data to bfr
     printw("\nList of Records\n");
     printw("---------------\n");
-    for (int j=0; j<counter; j++){
+    for (int j=0; j<counter; j++){ // gives us all the records
         printf("%i.%s \n", j+1, bfr[j]);
     }
     int todelete;
     printw("\nSelect [record number] to delete or [0] to cancel: ");
-    if (1 != scanf(" %d", &todelete)){
+    if (1 != scanf(" %d", &todelete)){ // if invalid entry number
         printw("Invalid record number\n");
         return;
     };
-    if(todelete > counter){
+    if(todelete > counter){  // if the choise you made is larger that record number
         printf("Number (%d) exceeds max record number (%d)\n", todelete, counter);
         return;
     }
@@ -188,16 +189,16 @@ void delete(){
         printw("Delete cancelled\n");
         return;
     }
-    int srs = open(DATAFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    int srs = open(DATAFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);  // opens datafile to write without the user selected entry deletes previous one
     int srn = open(POSFILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     for (long unsigned int j=0; j<counter; j++){
         if (j == (todelete - 1))
             continue;
-        long unsigned arlen = strlen(bfr[j]);
-        lseek(srs, 0, SEEK_END);
-        lseek(srn, 0, SEEK_END);
-        write(srs, bfr[j], arlen);
-        write(srn, &arlen, sizeof(int));
+        long unsigned arlen = strlen(bfr[j]); // arlen has buffer length each time
+        lseek(srs, 0, SEEK_END); // goes to end of file
+        lseek(srn, 0, SEEK_END);; // goes to end of file
+        write(srs, bfr[j], arlen); // write rlen bytes from srs to bfr[j]
+        write(srn, &arlen, sizeof(int)); // write sizeof(int) bytes to arlen
     }
     close(srs);
     close(srn);
@@ -205,7 +206,7 @@ void delete(){
 }
 
 
-void edit(){
+void edit(){ // edits the entry the user chooses
     if(! files_exist()) return;
     int counter = get_number_of_records();
     char bfr[counter][BSIZE];
@@ -213,15 +214,15 @@ void edit(){
     printw("\nList of Records\n");
     printw("---------------\n");
     for (int j=0; j<counter; j++){
-        printf("%i.%s \n", j+1, bfr[j]);
+        printf("%i.%s \n", j+1, bfr[j]); // prints all the entries
     }
     int toedit;
     printw("\nSelect [record number] to edit or [0] to cancel: ");
-    if (1 != scanf(" %d", &toedit)){
+    if (1 != scanf(" %d", &toedit)){ // if record number doesnt exist
         printw("Invalid record number\n");
         return;
     };
-    if(toedit > counter){
+    if(toedit > counter){ // if record you choose to edit is greater than the number of records
         printf("Number (%d) exceeds max record number (%d)\n", toedit, counter);
         return;
     }
@@ -233,10 +234,10 @@ void edit(){
     printf("Record to Edit: %s\n", bfr[toedit-1]);
     printw("New Value     : ");
     memset(bfr[toedit-1], '\0', BSIZE*sizeof(char));
-    scanf(" %[^\n]", bfr[toedit-1]);
-    if(NAMES_FIRST)
+    scanf(" %[^\n]", bfr[toedit-1]); //takes as input the edited entry
+    if(NAMES_FIRST) // if names are first
         flip_array(bfr, counter);
-    qsort(bfr, counter, sizeof bfr[0], cmp_str);
+    qsort(bfr, counter, sizeof bfr[0], cmp_str); //sorts them by surnames
     if(NAMES_FIRST)
         flip_array(bfr, counter);
     save2file(bfr, counter);
@@ -254,7 +255,7 @@ void display_all(){
     long unsigned int record_no = 1;
     printw("\nList Of Records\n");
     printw("---------------\n");
-    while(read(nfile, &anum, sizeof(int))){ //read the file that file decriptor shows,read sizeof(int) bytes a time and put them into the adress of anum//
+    while(read(nfile, &anum, sizeof(int))){ //read the file that file decriptor shows,read sizeof(int) bytes a time and put them into the adress of anum
         lseek(nfile, 0, SEEK_CUR); //leaves us at the position we were the last time we read
         printf("%d.", record_no++);
         memset(buffer, '\0', BSIZE*sizeof(char));
