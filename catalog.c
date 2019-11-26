@@ -252,7 +252,7 @@ void display_all(){
     int tanum = 0;
     int fd1 = open(DATAFILE, O_RDONLY); //file descriptor that shows that file opened
     int nfile = open(POSFILE, O_RDONLY);
-    long unsigned int record_no = 1;
+    unsigned int record_no = 1;
     printw("\nList Of Records\n");
     printw("---------------\n");
     while(read(nfile, &anum, sizeof(int))){ //read the file that file decriptor shows,read sizeof(int) bytes a time and put them into the adress of anum
