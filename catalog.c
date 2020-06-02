@@ -18,7 +18,7 @@
 #define NAMES_FIRST 1  // If names are before surnames
 
 
-void printw(char *val){ //implements printf i. i put as input a string
+void printw(char *val){ //implements printf. i put as input a string
    write(1, val, strlen(val)); // In write for first place we can either use a file descriptor obtained from the open system call, or you can use 0, 1, or 2, to refer to standard input, standard output, or standard error, respectively.we print val that has length strlen(val)
 }
 
