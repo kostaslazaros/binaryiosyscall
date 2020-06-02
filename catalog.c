@@ -4,7 +4,7 @@
 *  Developers: Nefeli Stefanatou & Konstantinos Lazaros   *
 *  Lesson    : Advanced Programming                       *
 ***********************************************************/
-
+//this is sparta
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
